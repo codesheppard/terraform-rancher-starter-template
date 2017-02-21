@@ -46,7 +46,7 @@ resource "aws_subnet" "rancher_ha_b" {
 resource "aws_subnet" "rancher_ha_c" {
   vpc_id                  = "${aws_vpc.vpc.id}"
   cidr_block              = "${element(split(",", var.aws_public_subnet_cidrs), 2)}"
-  availability_zone       = "${var.aws_region}b"
+  availability_zone       = "${var.aws_region}c"
   map_public_ip_on_launch = true
 
   tags {

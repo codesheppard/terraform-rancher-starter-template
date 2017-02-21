@@ -34,6 +34,10 @@ resource "aws_security_group" "rancher_ha_db_sg" {
   description = "Allow traffic from our HA cluster"
   vpc_id = "${var.vpc_id}"
 
+  tags {
+    Name = "${var.tag_name}-db-sg"
+  }
+
   egress {
     from_port = 0
     to_port = 0
@@ -50,6 +54,11 @@ resource "aws_security_group" "rancher_ha_db_sg" {
 }
 
 resource "aws_db_instance" "rancherdb" {
+  
+  tags {
+    Name = "${var.tag_name}-db_instance"
+  }
+
   allocated_storage    = 10
   engine               = "mysql"
   instance_class       = "${var.database_instance_class}"
@@ -59,4 +68,8 @@ resource "aws_db_instance" "rancherdb" {
   publicly_accessible  = false
   db_subnet_group_name = "${aws_db_subnet_group.rancher_ha.name}"
   vpc_security_group_ids = ["${aws_security_group.rancher_ha_db_sg.id}"]
+}
+
+output "endpoint" {
+  value = "${aws_db_instance.rancherdb.endpoint}"
 }
