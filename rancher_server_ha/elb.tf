@@ -21,7 +21,7 @@ resource "aws_elb" "rancher_ha" {
     timeout             = 5
 
     # target = "TCP:22"
-    target   = "HTTP:18080/ping"
+    target   = "HTTP:8080/ping"
     interval = 7
   }
 }
