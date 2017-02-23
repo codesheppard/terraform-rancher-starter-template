@@ -1,0 +1,13 @@
+#cloud-config
+write_files:
+  - path: /opt/start-rancher-agent.sh
+    permissions: "0755"
+    owner: root
+    content: |
+      #!/bin/bash
+      while ! docker version >/dev/null 2>&1; do echo 'waiting for docker...'; sleep 2; done
+      while ! ping -c 1 8.8.8.8 >/dev/null 2>&1; do echo 'waiting for net...'; sleep 2; done
+
+      docker run -d -v /var/lib/rancher:/var/lib/rancher -v /var/run/docker.sock:/var/run/docker.sock --privileged -e CATTLE_AGENT_IP="$(wget -qO - http://169.254.169.254/2016-06-30/meta-data/${ip-addr})" rancher/agent:${rancher_agent_version} ${rancher_reg_url}
+runcmd:
+    - [ sh, /opt/start-rancher-agent.sh ]

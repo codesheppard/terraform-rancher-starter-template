@@ -24,6 +24,12 @@ variable "registration_url" {}
 variable "key_name" {}
 variable "ha_size" {}
 
+# Top level variables for rancher_nodes/*.tf templates
+variable "cluster_size" {}
+variable "slave_instance_type" {}
+variable "rancher_reg_url" {}
+variable "rancher_agent_version" {}
+
 
 # If you haven't set up awscli before then you will need to add access and secret keys
 provider "aws" {
@@ -54,7 +60,7 @@ module "database" {
  database_subnet_ids = [
   "${module.networking.vpc_subnet_a}",
   "${module.networking.vpc_subnet_b}",
-#  "${module.networking.vpc_subnet_c}",
+  "${module.networking.vpc_subnet_c}",
  ]
  database_port = "${var.database_port}"
  database_name = "${var.database_name}"
@@ -82,7 +88,7 @@ module "rancher_server_ha" {
   subnet_ids = [
     "${module.networking.vpc_subnet_a}",
     "${module.networking.vpc_subnet_b}",
-#    "${module.networking.vpc_subnet_c}",
+    "${module.networking.vpc_subnet_c}",
   ]
 
   # database variables to be passed into Rancher Server Nodes
@@ -107,6 +113,30 @@ module "rancher_server_ha" {
 ###############################
 # Rancher Node Layer
 ###############################
+module "rancher_nodes" {
+  source = "./rancher_nodes"
+
+  vpc_id = "${module.networking.vpc_id}"
+  tag_name = "${var.tag_name}"
+
+  # ami that you created with packer
+  ami = {
+    us-east-1 = "ami-f05d91e6"
+  }
+
+  subnet_ids = [
+    "${module.networking.vpc_subnet_a}",
+    "${module.networking.vpc_subnet_b}",
+    "${module.networking.vpc_subnet_c}",
+  ]
+
+  instance_type = "${var.slave_instance_type}"
+  region = "${var.aws_region}"
+  key_name = "${var.key_name}"
+  rancher_reg_url = "${var.rancher_reg_url}"
+  rancher_agent_version = "${var.rancher_agent_version}"
+  cluster_size = "${var.cluster_size}"
+}
 
 
 

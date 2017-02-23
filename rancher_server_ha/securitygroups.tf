@@ -1,23 +1,23 @@
 # Into ELB from upstream
 resource "aws_security_group" "rancher_ha_web_elb" {
   name = "rancher_ha_web_elb"
-  description = "Allow ports rancher "
+  description = "Allow ports rancher"
   vpc_id = "${var.vpc_id}"
-   egress {
-     from_port = 0
-     to_port = 0
-     protocol = "-1"
-     cidr_blocks = ["0.0.0.0/0"]
-   }
-   ingress {
-      from_port = 443
-      to_port = 443
-      protocol = "tcp"
-     cidr_blocks = ["0.0.0.0/0"]
-   }
+  egress {
+    from_port = 0
+    to_port = 0
+    protocol = "-1"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+  ingress {
+    from_port = 443
+    to_port = 443
+    protocol = "tcp"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
 }
 
-#Into servers
+# Network restrictions for rancher_ha instances
 resource "aws_security_group" "rancher_ha_allow_elb" {
   name = "rancher_ha_allow_elb"
   description = "Allow Connection from elb"
@@ -29,29 +29,36 @@ resource "aws_security_group" "rancher_ha_allow_elb" {
     cidr_blocks = ["0.0.0.0/0"]
   }
 
-ingress {
-      from_port = 81
-      to_port = 81
-      protocol = "tcp"
-      security_groups = ["${aws_security_group.rancher_ha_web_elb.id}"]
+  ingress {
+    from_port = 8080
+    to_port = 8080
+    protocol = "tcp"
+    security_groups = ["${aws_security_group.rancher_ha_web_elb.id}"]
   }
-ingress {
-      from_port = 444
-      to_port = 444
-      protocol = "tcp"
-      security_groups = ["${aws_security_group.rancher_ha_web_elb.id}"]
+
+  ingress {
+    from_port = 81
+    to_port = 81
+    protocol = "tcp"
+    security_groups = ["${aws_security_group.rancher_ha_web_elb.id}"]
   }
-ingress {
-      from_port = 80
-      to_port = 80
-      protocol = "tcp"
-      security_groups = ["${aws_security_group.rancher_ha_web_elb.id}"]
+  ingress {
+    from_port = 444
+    to_port = 444
+    protocol = "tcp"
+    security_groups = ["${aws_security_group.rancher_ha_web_elb.id}"]
   }
-ingress {
-      from_port = 443
-      to_port = 443
-      protocol = "tcp"
-      security_groups = ["${aws_security_group.rancher_ha_web_elb.id}"]
+  ingress {
+    from_port = 80
+    to_port = 80
+    protocol = "tcp"
+    security_groups = ["${aws_security_group.rancher_ha_web_elb.id}"]
+  }
+  ingress {
+    from_port = 443
+    to_port = 443
+    protocol = "tcp"
+    security_groups = ["${aws_security_group.rancher_ha_web_elb.id}"]
   }
 }
 

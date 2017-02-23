@@ -4,25 +4,18 @@ data "template_file" "user_data" {
     template = "${file("${path.module}/files/userdata.template")}"
 
     vars {
-      cluster_size      = "${var.ha_size}"
-      database_endpoint = "${var.database_endpoint}"
-      database_username = "${var.database_username}"
-      database_password = "${var.database_password}"
-      database_name     = "${var.database_name}"
-      registration_url  = "${var.registration_url}"
-      rancher_version   = "${var.rancher_version}"
+      rancher_agent_version = "${var.rancher_agent_version}"
+      rancher_reg_url  = "${var.rancher_reg_url}"
       ip-addr           = "local-ipv4"
     }
 }
 
 # rancher resource
-resource "aws_launch_configuration" "rancher_ha" {
+resource "aws_launch_configuration" "rancher_node" {
   name_prefix = "Launch-Config-rancher-server-ha"
   image_id    = "${lookup(var.ami, var.region)}"
 
   security_groups = [
-    "${aws_security_group.rancher_ha_allow_elb.id}",
-    "${aws_security_group.rancher_ha_web_elb.id}",
     "${aws_security_group.rancher_ha_allow_internal.id}",
   ]
 
@@ -33,16 +26,15 @@ resource "aws_launch_configuration" "rancher_ha" {
   ebs_optimized               = false
 }
 
-resource "aws_autoscaling_group" "rancher_ha" {
+resource "aws_autoscaling_group" "rancher_node" {
   name                      = "${var.tag_name}-asg"
-  min_size                  = "${var.ha_size}"
-  max_size                  = "${var.ha_size}"
-  desired_capacity          = "${var.ha_size}"
+  min_size                  = "${var.cluster_size}"
+  max_size                  = "${var.cluster_size}"
+  desired_capacity          = "${var.cluster_size}"
   health_check_grace_period = 900
-  health_check_type         = "ELB"
+  health_check_type         = "EC2"
   force_delete              = false
-  launch_configuration      = "${aws_launch_configuration.rancher_ha.name}"
-  load_balancers            = ["${aws_elb.rancher_ha.name}"]
+  launch_configuration      = "${aws_launch_configuration.rancher_node.name}"
   vpc_zone_identifier       = ["${var.subnet_ids}"]
 
   tag {
@@ -54,11 +46,11 @@ resource "aws_autoscaling_group" "rancher_ha" {
 
 
 output "asg_name" {
-  value = "${aws_autoscaling_group.rancher_ha.name}"
+  value = "${aws_autoscaling_group.rancher_node.name}"
 }
 
 output "asg_id" {
-  value = "${aws_autoscaling_group.rancher_ha.id}"
+  value = "${aws_autoscaling_group.rancher_node.id}"
 }
 
 output "userdata" {
